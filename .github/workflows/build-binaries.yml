@@ -1,0 +1,76 @@
+name: Build Standalone Binaries
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.5"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Bundle CLI (esbuild)
+        run: npm run bundle
+
+      - name: Assert bundle invariants
+        run: npm run assert-bundle
+
+      - name: Read version
+        id: version
+        run: echo "VERSION=$(node -e "console.log(require('./package.json').version)")" >> "$GITHUB_OUTPUT"
+
+      - name: Compile Linux x64 binary
+        run: |
+          bun build --compile --target=bun-linux-x64 cli.bundle.mjs --outfile context-mode-linux-x64
+          ls -lh context-mode-linux-x64
+
+      - name: Compile Windows x64 binary (cross-compile)
+        run: |
+          bun build --compile --target=bun-windows-x64 cli.bundle.mjs --outfile context-mode-windows-x64.exe
+          ls -lh context-mode-windows-x64.exe
+
+      - name: Smoke test — help
+        run: ./context-mode-linux-x64 --help
+
+      - name: Smoke test — doctor
+        continue-on-error: true
+        run: ./context-mode-linux-x64 doctor
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: context-mode-${{ steps.version.outputs.VERSION }}-binaries
+          path: |
+            context-mode-linux-x64
+            context-mode-windows-x64.exe
+
+  smoke-windows:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: context-mode-${{ needs.build.outputs.version }}-binaries
+
+      - name: Smoke test — help
+        shell: pwsh
+        run: .\context-mode-windows-x64.exe --help
+
+      - name: Smoke test — doctor
+        continue-on-error: true
+        shell: pwsh
+        run: .\context-mode-windows-x64.exe doctor

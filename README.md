@@ -1158,6 +1158,56 @@ npm install -g context-mode
 
 </details>
 
+<details>
+<summary><strong>Standalone binaries</strong> — no Node.js required</summary>
+
+**Prerequisites:** None. The binary includes its own runtime.
+
+**Download:** Trigger the "Build Standalone Binaries" workflow on GitHub Actions, then download the artifact from the run page. Two binaries are produced:
+
+| Platform | File |
+|----------|------|
+| Linux x64 | `context-mode-linux-x64` |
+| Windows x64 | `context-mode-windows-x64.exe` |
+
+**Install — Linux x64:**
+
+```bash
+chmod +x context-mode-linux-x64
+sudo mv context-mode-linux-x64 /usr/local/bin/context-mode
+context-mode doctor
+```
+
+Or run directly without install: `./context-mode-linux-x64 doctor`.
+
+**Install — Windows x64:**
+
+1. Download `context-mode-windows-x64.exe`
+2. (Optional) Add to PATH: `setx PATH "%PATH%;C:\path\to\context-mode"`
+3. Run: `context-mode.exe --help` or `context-mode.exe doctor`
+
+**MCP server mode:** Run the binary with no arguments — it starts the MCP server on stdio, ready to be registered in any MCP client:
+
+```json
+{
+  "mcpServers": {
+    "context-mode": {
+      "command": "/path/to/context-mode"
+    }
+  }
+}
+```
+
+Known limitations: the binary runs under Bun's runtime and uses `bun:sqlite` (FTS5 included). The `ctx_upgrade` tool and `context-mode upgrade` command are not available in standalone mode — upgrade by downloading a new binary. The binary embeds the `cli.bundle.mjs` (CLI + MCP server), so all CLI commands (`index`, `search`, `doctor`, `statusline`) and 11 MCP tools work.
+
+**Verify:**
+
+```bash
+./context-mode-linux-x64 doctor
+```
+
+</details>
+
 ## Tools
 
 | Tool | What it does | Context saved |
