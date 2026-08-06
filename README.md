@@ -1208,6 +1208,56 @@ Known limitations: the binary runs under Bun's runtime and uses `bun:sqlite` (FT
 
 </details>
 
+<details>
+<summary><strong>独立二进制文件</strong> — 无需安装 Node.js</summary>
+
+**前置条件：** 无。二进制文件自带运行时。
+
+**下载：** 在 GitHub Actions 页面手动触发 "Build Standalone Binaries" 工作流，运行完成后从页面底部的 **Artifacts** 下载压缩包。包含两个文件：
+
+| 平台 | 文件 |
+|------|------|
+| Linux x64 | `context-mode-linux-x64` |
+| Windows x64 | `context-mode-windows-x64.exe` |
+
+**安装 — Linux x64：**
+
+```bash
+chmod +x context-mode-linux-x64
+sudo mv context-mode-linux-x64 /usr/local/bin/context-mode
+context-mode doctor
+```
+
+或者直接运行，无需安装：`./context-mode-linux-x64 doctor`。
+
+**安装 — Windows x64：**
+
+1. 下载 `context-mode-windows-x64.exe`
+2. （可选）加入 PATH：`setx PATH "%PATH%;C:\path\to\context-mode"`
+3. 运行：`context-mode.exe --help` 或 `context-mode.exe doctor`
+
+**MCP server 模式：** 无参数运行即可启动 stdio MCP server，直接在任何 MCP 客户端中注册：
+
+```json
+{
+  "mcpServers": {
+    "context-mode": {
+      "command": "/path/to/context-mode"
+    }
+  }
+}
+```
+
+**已知限制：** 二进制在 Bun 运行时下运行，使用 `bun:sqlite`（自带 FTS5）。`ctx_upgrade` 工具和 `context-mode upgrade` 命令在独立模式下不可用，升级需重新下载新版本二进制。二进制内置了 `cli.bundle.mjs`（CLI + MCP server），所有 CLI 命令（`index`、`search`、`doctor`、`statusline`）和 11 个 MCP 工具均可用。
+
+**验证：**
+
+```bash
+./context-mode-linux-x64 doctor
+```
+
+</details>
+
 ## Tools
 
 | Tool | What it does | Context saved |
